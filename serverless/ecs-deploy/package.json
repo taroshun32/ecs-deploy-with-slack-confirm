@@ -1,0 +1,31 @@
+{
+  "name": "ecs-deploy",
+  "version": "1.0.0",
+  "description": "ecs deploy functions",
+  "main": "serverless.ts",
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.370.0",
+    "@middy/core": "^4.5.5",
+    "@middy/ssm": "^4.5.5",
+    "@slack/web-api": "^6.8.1",
+    "axios": "^1.4.0",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-ssm": "^3.370.0",
+    "@serverless/typescript": "^3.0.0",
+    "@types/aws-lambda": "^8.10.71",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/node": "^14.14.25",
+    "esbuild": "^0.14.11",
+    "json-schema-to-ts": "^1.5.0",
+    "serverless": "^3.0.0",
+    "serverless-esbuild": "^1.23.3",
+    "ts-node": "^10.4.0",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^4.1.3"
+  }
+}
