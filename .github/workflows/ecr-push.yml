@@ -18,7 +18,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ap-northeast-1
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_SECRET_ACCESS_KEY }}:role/github_actions
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github_actions
 
       - name: Set version
         run:  echo "PACKAGE_VERSION=`node -pe "require('./package.json')['version']"`" >> $GITHUB_ENV
