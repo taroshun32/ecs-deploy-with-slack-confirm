@@ -26,7 +26,7 @@ const deployExec = async (
 
   // actions を dispatch する
   await axios.post(
-    `https://api.github.com/repos/taroshun32/taroshun32-actions/actions/workflows/ecs-${slackAction.name}.yml/dispatches`,
+    `https://api.github.com/repos/taroshun32/ecs-deploy-with-slack-confirm/actions/workflows/ecs-${slackAction.name}.yml/dispatches`,
     {
       ref:    'main',
       inputs: {

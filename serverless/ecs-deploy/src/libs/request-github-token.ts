@@ -18,7 +18,7 @@ export const requestGithubToken = async (
 
   // InstallID を取得
   const installation = await axios.get(
-    'https://api.github.com/repos/taroshun32/taroshun32-actions/installation',
+    'https://api.github.com/repos/taroshun32/ecs-deploy-with-slack-confirm/installation',
     {
       headers: {
         Authorization: 'Bearer ' + jwt,

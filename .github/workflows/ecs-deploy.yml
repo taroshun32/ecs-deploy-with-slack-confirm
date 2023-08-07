@@ -1,0 +1,142 @@
+name: "ecs-deploy"
+
+on:
+  workflow_dispatch:
+    inputs:
+      REPOSITORY:
+        description: ecr repository name
+        required:    true
+      TAG:
+        description: ecr tag
+        required:    true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ap-northeast-1
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github_actions
+
+      - name: Dynamodb scan
+        uses: ./.github/actions/dynamodb-scan
+        with:
+          REPOSITORY: ${{ github.event.inputs.REPOSITORY }}
+
+      - name:  Get Amazon ECR image for rollback
+        id:    image-for-rollback
+        shell: bash
+        run:   |
+          task_arn=$(aws ecs describe-services --cluster ${{ env.CLUSTER }} --services ${{ env.SERVICE }} --query "(services[?serviceName=='${{ env.SERVICE }}'] | [0]).taskDefinition" --output text)
+          repository_arn=$(aws ecs describe-task-definition --task-definition ${task_arn} --query "(taskDefinition.containerDefinitions[?name=='${{ env.CONTAINER }}'] | [0]).image" --output text)
+          split=(${repository_arn/amazonaws.com\// })
+          echo "image=${split[1]}" >> $GITHUB_OUTPUT
+
+      - name:  Download Amazon ECS task definition
+        shell: bash
+        run:   |
+          aws ecs describe-task-definition --task-definition ${{ env.TASK }} --query taskDefinition > task-definition.json
+
+      - name: Render Amazon ECS task definition
+        id:   render-web-container
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name:  ${{ env.CONTAINER }}
+          image:           ${{ env.ACCOUNT }}.dkr.ecr.ap-northeast-1.amazonaws.com/${{ env.REPOSITORY }}:${{ github.event.inputs.TAG }}
+
+      - name: Post task info
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ env.CHANNEL }}
+          payload: |
+            {
+              "attachments": [
+                {
+                  "text": "タスクが更新されました。\nデプロイが完了するまでしばらくお待ちください。",
+                  "fields": [
+                    {
+                      "value": "${{ env.TASK }}",
+                      "title": "Task"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Deploy to Amazon ECS service
+        id:   deploy-web-container
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          cluster:         ${{ env.CLUSTER }}
+          service:         ${{ env.SERVICE }}
+          task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+          wait-for-service-stability: true
+
+      - name:  Get latest of Amazon ECS task definition
+        shell: bash
+        run:   |
+          TASK_ARN=$(aws ecs list-task-definitions --family-prefix ${{ env.TASK }} --sort DESC --max-items 1 --query 'taskDefinitionArns[0]' --output text)
+          SPLIT=(${TASK_ARN/task-definition\// })
+          echo "TASK_DEFINITION=${SPLIT[1]}" >> $GITHUB_ENV
+
+      - name: Post completion notice
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ env.CHANNEL }}
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "デプロイが完了しました。\nTask-definition: ${{ env.TASK_DEFINITION }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Post rollback button
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ env.CHANNEL }}
+          payload: |
+            {
+              "replace_original": false,
+              "attachments": [
+                {
+                  "callback_id": "rollback",
+                  "text": "直前の ecr-image にロールバックする場合は以下のボタンを押してください。\necr-image = ${{ steps.image-for-rollback.outputs.image }}",
+                  "actions": [
+                    {
+                      "text": "ロールバックする",
+                      "type": "button",
+                      "name": "rollback",
+                      "value": "${{ steps.image-for-rollback.outputs.image }}",
+                      "confirm": {
+                        "title": "最終確認",
+                        "text": "本当にロールバックしますか？",
+                        "ok_text": "はい",
+                        "dismiss_text": "いいえ"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
