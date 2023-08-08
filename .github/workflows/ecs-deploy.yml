@@ -101,7 +101,7 @@ jobs:
                 {
                   "type": "section",
                   "text": {
-                    "type": "plain_text",
+                    "type": "mrkdwn",
                     "text": "デプロイが完了しました。\ntask-definition: `${{ env.TASK_DEFINITION }}`"
                   }
                 }
