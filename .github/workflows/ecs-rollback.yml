@@ -95,7 +95,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "plain_text",
-                    "text": "ロールバックが完了しました。\nTask-definition: ${{ env.TASK_DEFINITION }}"
+                    "text": "ロールバックが完了しました。\ntask-definition: `${{ env.TASK_DEFINITION }}`"
                   }
                 }
               ]
