@@ -55,7 +55,7 @@ async function slackConfirm(event, context) {
 
     const accessToken = await requestGithubToken(context.GITHUB_APP_ID, context.GITHUB_SECRET_KEY)
     await axios.post(
-      'https://api.github.com/repos/taroshun32/ecs-deploy-with-slack-confirm/actions/workflow/ecs-deploy.yml/dispatches',
+      'https://api.github.com/repos/taroshun32/ecs-deploy-with-slack-confirm/actions/workflows/ecs-deploy.yml/dispatches',
       {
         ref:    'main',
         inputs: {
