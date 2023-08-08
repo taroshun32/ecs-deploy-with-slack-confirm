@@ -22,5 +22,5 @@ sequenceDiagram
   action->>dynamo: deploy 情報取得
   action->>ecs: deploy
   action->>slack: メッセージを送信
-  Note over action,aynamo: ↓ rollback する場合 ↓
+  Note over action,dynamo: ↓ rollback する場合 ↓
 ```
