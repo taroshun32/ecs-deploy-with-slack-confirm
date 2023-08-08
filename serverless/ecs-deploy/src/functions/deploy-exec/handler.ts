@@ -43,7 +43,7 @@ const deployExec = async (
   )
 
   const eventType = (slackAction.name === 'deploy') ? 'デプロイ' : 'ロールバック'
-  return { statusCode: 200, body: `${eventType}を開始します。\n実行者: ${body.user.name}` }
+  return { statusCode: 200, body: `\`\`\`${eventType}を開始します。\n実行者: ${body.user.name}\`\`\`` }
 }
 
 export const main = middyfy(deployExec)

@@ -48,7 +48,7 @@ async function slackConfirm(event, context) {
       blocks:  [
         {
           type: "section",
-          text: { type: "plain_text", text: "デプロイを開始します。" }
+          text: { type: "mrkdwn", text: "```デプロイを開始します。```" }
         }
       ]
     })
