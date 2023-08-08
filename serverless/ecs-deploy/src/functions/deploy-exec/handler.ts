@@ -20,7 +20,7 @@ const deployExec = async (
   const slackAction = body.actions[0]
 
   if (slackAction.name === 'not_deploy')
-    return { statusCode: 200, body: 'デプロイを中止しました。\n実行者: ' + body.user.name }
+    return { statusCode: 200, body: `\`\`\`デプロイを中止しました。\n実行者: ${body.user.name}\'\'\'` }
 
   const accessToken = await requestGithubToken(context.GITHUB_APP_ID, context.GITHUB_SECRET_KEY)
 
