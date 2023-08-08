@@ -23,4 +23,9 @@ sequenceDiagram
   action->>ecs: deploy
   action->>slack: メッセージを送信
   Note over action,dynamo: ↓ rollback する場合 ↓
+  slack->>slack: rollback ボタン押下
+  slack->>lambda: lambda 起動
+  lambda->>action: workflow dispatch (rollback.yml)
+  action->>dynamo: rollback 情報取得
+  action->>ecs: rollback
 ```
